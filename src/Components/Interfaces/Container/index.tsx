@@ -4,18 +4,20 @@ import Modal from '../../Modal/Modal';
 import CardGroup from '../CardGroups';
 
 type NotasType = {
-  "1º Bimestre": Record<string, number>;
-  "2º Bimestre": Record<string, number>;
-  "3º Bimestre": Record<string, number>;
-  "4º Bimestre": Record<string, number>;
+  "PRIMEIRO": Record<string, number>;
+  "SEGUNDO": Record<string, number>;
+  "TERCEIRO": Record<string, number>;
+  "QUARTO": Record<string, number>;
 };
 
 export const Interface = () => {
+  
+  
   const initialState: NotasType = {
-    "1º Bimestre": { Biologia: 5, Artes: 5, Geografia: 5, Sociologia: 5.9 },
-    "2º Bimestre": { Biologia: 5, Artes: 5, Geografia: 5, Sociologia: 5.9 },
-    "3º Bimestre": { Biologia: 5, Artes: 5, Geografia: 5, Sociologia: 5.9 },
-    "4º Bimestre": { Biologia: 5, Artes: 5, Geografia: 5, Sociologia: 5.9 }
+    "PRIMEIRO": { Biologia: 5, Artes: 5, Geografia: 5, Sociologia: 5.9 },
+    "SEGUNDO": { Biologia: 5, Artes: 5, Geografia: 5, Sociologia: 5.9 },
+    "TERCEIRO": { Biologia: 5, Artes: 5, Geografia: 5, Sociologia: 5.9 },
+    "QUARTO": { Biologia: 5, Artes: 5, Geografia: 5, Sociologia: 5.9 }
   };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -43,10 +45,38 @@ export const Interface = () => {
       setNovaNota(notas[bimestreSelecionado][disciplina]);
     }
   };
+
   
-  const handleConfirmarNota = () => {
+  
+  const handleConfirmarNota = async () => {
     if (isKeyOfNotasType(bimestreSelecionado) && disciplinaSelecionada in notas[bimestreSelecionado]) {
       handleNotaChange(bimestreSelecionado, disciplinaSelecionada, novaNota);
+
+      try {
+        const response = await fetch('http://localhost:10000/resultados', { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            bimestre: bimestreSelecionado,
+            disciplina: disciplinaSelecionada,
+            nota: novaNota
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro HTTP: ${response.status}`);
+        }
+
+        const json = await response.json();
+        console.log('Resposta do servidor:', json);
+        alert('Nota enviada com sucesso!');
+      } catch (error) {
+        console.error('Erro ao enviar dados para o servidor:', error);
+        alert('Falha ao enviar nota.');
+      }
+
       handleCloseModal();
     }
   };
@@ -63,6 +93,18 @@ export const Interface = () => {
     }));
   };
 
+  const handleZeroNota = (disciplina: string) => {
+    if (isKeyOfNotasType(bimestreSelecionado)) {
+      setNotas(prevNotas => ({
+        ...prevNotas,
+        [bimestreSelecionado]: {
+          ...prevNotas[bimestreSelecionado],
+          [disciplina]: 0
+        }
+      }));
+    }
+  };
+  
   return (
     <div className='Interface'>
       {Object.entries(notas).map(([bimestre, notasBimestre]) => (
@@ -71,6 +113,7 @@ export const Interface = () => {
           title={bimestre} 
           notas={notasBimestre} 
           onOpenModal={handleOpenModal} 
+            onZeroNota={handleZeroNota}
         />
       ))}
       <Modal show={isModalOpen} onClose={handleCloseModal}>
@@ -92,7 +135,7 @@ export const Interface = () => {
 
           <div className="nota-input">
             <label htmlFor="nota" className="label-nota">Nota: </label>
-            <input type="number" id="nota" value={novaNota} onChange={(e) => setNovaNota(Number(e.target.value))} />
+            <input type="text" id="nota" value={novaNota} onChange={(e) => setNovaNota(Number(e.target.value))} />
           </div>
           <button className='Confirm-Button' onClick={handleConfirmarNota}>Confirmar</button>
         </div>

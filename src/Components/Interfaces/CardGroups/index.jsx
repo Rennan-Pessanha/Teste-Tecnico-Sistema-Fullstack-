@@ -1,7 +1,7 @@
 import React from 'react';
 
-const CardGroup = ({ title, notas, onOpenModal }) => {
-
+const CardGroup = ({ title, notas, onOpenModal, onZeroNota }) => {
+  
   return (
     <div>
       <div className="group-header">
@@ -21,7 +21,7 @@ const CardGroup = ({ title, notas, onOpenModal }) => {
                 <img src="/Icons/Chart.svg" alt="Ícone" className="IconImg"/> Nota: {nota}
               </div>
             </div>
-            <img src="/Icons/Trash.svg" alt="Lixeira" className="trash-icon" />
+            <img src="/Icons/Trash.svg" alt="Lixeira" className="trash-icon" onClick={() => onZeroNota(disciplina)} />
           </div>
         ))}
       </div>
